@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Chat - Famille</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+        }
+        
+        .login-form {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard {
+            display: none;
+            padding: 20px;
+        }
+        
+        .user-greeting {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .task {
+            background: #f9f9f9;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .task:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .task.done {
+            background: #e8f5e8;
+            border-left-color: #4CAF50;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .task-status {
+            font-size: 0.9em;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background: #ffeb3b;
+            color: #333;
+        }
+        
+        .task-status.done {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .task-info {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .task {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Écran de connexion -->
+        <div class="header">
+            <h1>🐱 Suivi Chat Famille</h1>
+            <p>Ne faisons plus les choses en double !</p>
+        </div>
+        
+        <div id="loginScreen" class="login-form">
+            <h2>Connexion Famille</h2>
+            <div class="input-group">
+                <label for="userName">Ton prénom :</label>
+                <input type="text" id="userName" placeholder="Ex: Marie, Pierre, Jean...">
+            </div>
+            <div class="input-group">
+                <label for="familyPassword">Mot de passe famille :</label>
+                <input type="password" id="familyPassword" placeholder="Mot de passe secret">
+            </div>
+            <button onclick="login()">🚪 Se connecter</button>
+            <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+                Demande le mot de passe à la personne qui a créé le site
+            </p>
+        </div>
+
+        <!-- Tableau de bord -->
+        <div id="dashboard" class="dashboard">
+            <div class="user-greeting">
+                <h2>Bonjour <span id="greeting"></span> ! 👋</h2>
+                <p>Voici l'état des tâches pour aujourd'hui :</p>
+            </div>
+            
+            <div id="tasksList">
+                <!-- Les tâches seront générées ici -->
+            </div>
+            
+            <button onclick="logout()" class="logout-btn">👋 Déconnexion</button>
+        </div>
+    </div>
+
+    <script>
+        // 🔐 MOT DE PASSE FAMILLE - CHANGEZ-LE !
+        const FAMILY_PASSWORD = "chat2024";
+        
+        // Tâches quotidiennes
+        const DAILY_TASKS = [
+            { id: 1, name: "🍽️ Donner les croquettes du matin", icon: "🌅" },
+            { id: 2, name: "💧 Changer l'eau et nettoyer la gamelle", icon: "💦" },
+            { id: 3, name: "🐾 Ramasser la litière (matin)", icon: "✨" },
+            { id: 4, name: "🍽️ Donner la pâtée du soir", icon: "🌙" },
+            { id: 5, name: "🐾 Ramasser la litière (soir)", icon: "✨" }
+        ];
+        
+        // Tâches hebdomadaires
+        const WEEKLY_TASKS = [
+            { id: 6, name: "🧼 Changer entièrement la litière", icon: "🚿" }
+        ];
+
+        function login() {
+            const password = document.getElementById('familyPassword').value;
+            const userName = document.getElementById('userName').value.trim();
+            
+            if (password === FAMILY_PASSWORD && userName) {
+                localStorage.setItem('userName', userName);
+                showDashboard();
+            } else {
+                alert('❌ Mot de passe incorrect ou nom manquant');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('greeting').textContent = localStorage.getItem('userName');
+            loadTasks();
+        }
+
+        function loadTasks() {
+            const today = new Date().toDateString();
+            const isWeekend = new Date().getDay() === 6; // Samedi
+            
+            let html = '<h3 style="margin: 20px 0; color: #333;">📋 Tâches du ' + new Date().toLocaleDateString('fr-FR', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            }) + '</h3>';
+            
+            // Tâches quotidiennes
+            html += '<h4 style="margin: 15px 0 10px 0; color: #555;">🔄 Quotidiennes</h4>';
+            DAILY_TASKS.forEach(task => {
+                const doneInfo = getTaskStatus(task.id, today);
+                const isDone = doneInfo !== null;
+                
+                html += `
+                    <div class="task ${isDone ? 'done' : ''}">
+                        <div class="task-header">
+                            <div class="task-title">${task.icon} ${task.name}</div>
+                            <div class="task-status ${isDone ? 'done' : ''}">
+                                ${isDone ? '✅ Fait' : '⏳ À faire'}
+                            </div>
+                        </div>
+                        ${isDone ? 
+                            `<div class="task-info">Par ${doneInfo.name} à ${doneInfo.time}</div>` :
+                            `<button onclick="markDone(${task.id})">Je viens de le faire !</button>`
+                        }
+                    </div>
+                `;
+            });
+            
+            // Tâches hebdomadaires (samedi seulement)
+            if (isWeekend) {
+                html += '<h4 style="margin: 25px 0 10px 0; color: #555;">📅 Hebdomadaires</h4>';
+                WEEKLY_TASKS.forEach(task => {
+                    const doneInfo = getTaskStatus(task.id, today);
+                    const isDone = doneInfo !== null;
+                    
+                    html += `
+                        <div class="task ${isDone ? 'done' : ''}">
+                            <div class="task-header">
+                                <div class="task-title">${task.icon} ${task.name}</div>
+                                <div class="task-status ${isDone ? 'done' : ''}">
+                                    ${isDone ? '✅ Fait' : '⏳ À faire'}
+                                </div>
+                            </div>
+                            ${isDone ? 
+                                `<div class="task-info">Par ${doneInfo.name} à ${doneInfo.time}</div>` :
+                                `<button onclick="markDone(${task.id})">Je change la litière !</button>`
+                            }
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('tasksList').innerHTML = html;
+        }
+
+        function markDone(taskId) {
+            const userName = localStorage.getItem('userName');
+            const taskStatus = {
+                taskId: taskId,
+                name: userName,
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                date: new Date().toDateString()
+            };
+            
+            // Sauvegarder dans le localStorage
+            const doneTasks = JSON.parse(localStorage.getItem('doneTasks') || '{}');
+            doneTasks[taskId] = taskStatus;
+            localStorage.setItem('doneTasks', JSON.stringify(doneTasks));
+            
+            loadTasks(); // Recharger l'affichage
+        }
+
+        function getTaskStatus(taskId, today) {
+            const doneTasks = JSON.parse(localStorage.getItem('doneTasks') || '{}');
+            const task = doneTasks[taskId];
+            
+            if (task && task.date === today) {
+                return task;
+            }
+            return null;
+        }
+
+        function logout() {
+            localStorage.removeItem('userName');
+            location.reload();
+        }
+
+        // Vérifier si déjà connecté au chargement
+        if (localStorage.getItem('userName')) {
+            showDashboard();
+        }
+        
+        // Enter pour se connecter
+        document.getElementById('familyPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
