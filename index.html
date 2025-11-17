@@ -3,57 +3,506 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Suivi Chat</title>
+    <title>Suivi Chat - Temps Réel</title>
     <style>
-        body { font-family: Arial; padding: 20px; }
-        .task { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
-        .done { background: #e8f5e8; }
-        button { margin: 5px; padding: 10px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+        }
+        
+        .real-time-badge {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            padding: 3px 12px;
+            border-radius: 15px;
+            font-size: 0.6em;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        .login-form {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .dashboard {
+            display: none;
+            padding: 20px;
+        }
+        
+        .user-greeting {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .refresh-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .task {
+            background: #f9f9f9;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .task:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .task.done {
+            background: #e8f5e8;
+            border-left-color: #4CAF50;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+        }
+        
+        .task-status {
+            font-size: 0.9em;
+            padding: 5px 12px;
+            border-radius: 15px;
+            background: #ffeb3b;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .task-status.done {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .task-info {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #4CAF50;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .notification.error {
+            background: #ff6b6b;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .task {
+                padding: 15px;
+            }
+            
+            .task-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .task-status {
+                margin-top: 8px;
+            }
+            
+            .notification {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>🐱 Test Suivi Chat</h1>
-    
-    <div id="login">
-        <h3>Connexion</h3>
-        <input type="text" id="userName" placeholder="Votre prénom">
-        <button onclick="login()">Se connecter</button>
-    </div>
+    <div class="container">
+        <div class="header">
+            <h1>🐱 Suivi Chat Famille <span class="real-time-badge">LIVE</span></h1>
+            <p>Les mises à jour sont visibles par tous immédiatement !</p>
+        </div>
+        
+        <div id="loginScreen" class="login-form">
+            <h2>Connexion Famille</h2>
+            <div class="input-group">
+                <label for="userName">Ton prénom :</label>
+                <input type="text" id="userName" placeholder="Ex: Marie, Pierre, Jean...">
+            </div>
+            <div class="input-group">
+                <label for="familyPassword">Mot de passe famille :</label>
+                <input type="password" id="familyPassword" placeholder="Mot de passe secret">
+            </div>
+            <button onclick="login()">🚪 Se connecter</button>
+            <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+                Demande le mot de passe à la personne qui a créé le site
+            </p>
+        </div>
 
-    <div id="dashboard" style="display: none;">
-        <h2>Bonjour <span id="greeting"></span> !</h2>
-        <button onclick="testAddTask()">➕ TEST: Ajouter une tâche</button>
-        <button onclick="loadTasks()">🔄 Charger les tâches</button>
-        <div id="tasksList"></div>
-        <div id="debug" style="margin-top: 20px; padding: 10px; background: #f5f5f5;"></div>
+        <div id="dashboard" class="dashboard">
+            <div class="user-greeting">
+                <h2>Bonjour <span id="greeting"></span> ! 👋</h2>
+                <p>Voici l'état des tâches en temps réel :</p>
+            </div>
+            
+            <div class="refresh-info">
+                🔄 Synchronisation automatique - 
+                <span id="lastRefresh">Dernier rafraîchissement : --:--:--</span>
+                <br>
+                <small>Le site se met à jour automatiquement toutes les 15 secondes</small>
+            </div>
+            
+            <div id="tasksList"></div>
+            
+            <button onclick="logout()" class="logout-btn">👋 Déconnexion</button>
+        </div>
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwV2K71cHcncy6qdABQry0mUaxNI2NyJBDmoSWKal6hjMAqXIVziVQ_ZImV2zXThtn6AQ/exec";
+        // 🔧 CONFIGURATION - À MODIFIER !
+        const CONFIG = {
+            PASSWORD: "mouchi",
+            // ⚠️ REMPLACEZ PAR L'URL DE VOTRE GOOGLE APPS SCRIPT
+            GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwV2K71cHcncy6qdABQry0mUaxNI2NyJBDmoSWKal6hjMAqXIVziVQ_ZImV2zXThtn6AQ/exec"
+        };
+
+        const TASKS = {
+            1: { name: "🍽️ Donner les croquettes du matin", icon: "🌅" },
+            2: { name: "💧 Changer l'eau et nettoyer la gamelle", icon: "💦" },
+            3: { name: "🐾 Ramasser la litière (matin)", icon: "✨" },
+            4: { name: "🍽️ Donner la pâtée du soir", icon: "🌙" },
+            5: { name: "🐾 Ramasser la litière (soir)", icon: "✨" },
+            6: { name: "🧼 Changer entièrement la litière", icon: "🚿" }
+        };
+
         let currentUser = "";
+        let autoRefreshInterval;
 
         function login() {
+            const password = document.getElementById('familyPassword').value;
             const userName = document.getElementById('userName').value.trim();
-            if (userName) {
+            
+            if (password === CONFIG.PASSWORD && userName) {
                 currentUser = userName;
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                document.getElementById('greeting').textContent = userName;
-                loadTasks();
+                localStorage.setItem('userName', userName);
+                showDashboard();
+            } else {
+                alert('❌ Mot de passe incorrect ou nom manquant');
             }
         }
 
-        async function testAddTask() {
-            const taskData = {
-                user: currentUser,
-                task_id: 1,
-                task_name: "🍽️ Test croquettes matin"
-            };
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('greeting').textContent = currentUser;
+            
+            startAutoRefresh();
+            loadTasks();
+        }
 
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(loadTasks, 15000);
+        }
+
+        async function loadTasks() {
             try {
-                document.getElementById('debug').innerHTML = "⏳ Envoi en cours...";
+                showLoadingState(true);
+                const tasksData = await fetchTasksFromSheet();
+                displayTasks(tasksData);
+                updateLastRefresh();
+                showLoadingState(false);
+            } catch (error) {
+                console.error("Erreur chargement:", error);
+                showError("Mode démo - Connexion échouée");
+                showLoadingState(false);
+            }
+        }
+
+        async function fetchTasksFromSheet() {
+            try {
+                const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL);
+                const data = await response.json();
                 
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                if (data.success && data.data) {
+                    return processSheetData(data.data);
+                }
+                throw new Error('Données invalides');
+            } catch (error) {
+                // Fallback vers les données locales
+                return getLocalTasks();
+            }
+        }
+
+        function processSheetData(sheetData) {
+            const today = new Date().toDateString();
+            const tasksDone = {};
+            
+            // Ignorer l'en-tête (première ligne)
+            for (let i = 1; i < sheetData.length; i++) {
+                const row = sheetData[i];
+                if (row[4] === today) { // La colonne E (date)
+                    tasksDone[row[2]] = { // La colonne C (task_id)
+                        user: row[1], // La colonne B (utilisateur)
+                        time: new Date(row[0]).toLocaleTimeString('fr-FR', { 
+                            hour: '2-digit', minute: '2-digit' 
+                        })
+                    };
+                }
+            }
+            
+            return tasksDone;
+        }
+
+        function getLocalTasks() {
+            const stored = localStorage.getItem('localTasks');
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        function displayTasks(tasksData) {
+            const today = new Date().toDateString();
+            const isWeekend = [0, 6].includes(new Date().getDay());
+            
+            let html = `
+                <h3 style="margin: 20px 0; color: #333; text-align: center;">
+                    📋 Tâches du ${new Date().toLocaleDateString('fr-FR', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    })}
+                </h3>
+            `;
+            
+            html += '<h4 style="margin: 20px 0 10px 0; color: #555; border-bottom: 2px solid #eee; padding-bottom: 5px;">🔄 Quotidiennes</h4>';
+            
+            [1, 2, 3, 4, 5].forEach(taskId => {
+                const task = TASKS[taskId];
+                const doneInfo = tasksData[taskId];
+                const isDone = !!doneInfo;
+                const isDoneByMe = isDone && doneInfo.user === currentUser;
+                
+                html += `
+                    <div class="task ${isDone ? 'done' : ''}">
+                        <div class="task-header">
+                            <div class="task-title">${task.icon} ${task.name}</div>
+                            <div class="task-status ${isDone ? 'done' : ''}">
+                                ${isDone ? '✅ Fait' : '⏳ À faire'}
+                            </div>
+                        </div>
+                        ${isDone ? 
+                            `<div class="task-info">
+                                <strong>${isDoneByMe ? '✅ Vous' : '👤 ' + doneInfo.user}</strong> 
+                                à ${doneInfo.time}
+                            </div>` :
+                            `<button onclick="markTaskDone(${taskId})">
+                                Je viens de le faire !
+                            </button>`
+                        }
+                    </div>
+                `;
+            });
+            
+            if (isWeekend) {
+                html += '<h4 style="margin: 25px 0 10px 0; color: #555; border-bottom: 2px solid #eee; padding-bottom: 5px;">📅 Hebdomadaire</h4>';
+                
+                const taskId = 6;
+                const task = TASKS[taskId];
+                const doneInfo = tasksData[taskId];
+                const isDone = !!doneInfo;
+                const isDoneByMe = isDone && doneInfo.user === currentUser;
+                
+                html += `
+                    <div class="task ${isDone ? 'done' : ''}">
+                        <div class="task-header">
+                            <div class="task-title">${task.icon} ${task.name}</div>
+                            <div class="task-status ${isDone ? 'done' : ''}">
+                                ${isDone ? '✅ Fait' : '⏳ À faire'}
+                            </div>
+                        </div>
+                        ${isDone ? 
+                            `<div class="task-info">
+                                <strong>${isDoneByMe ? '✅ Vous' : '👤 ' + doneInfo.user}</strong> 
+                                à ${doneInfo.time}
+                            </div>` :
+                            `<button onclick="markTaskDone(${taskId})">
+                                🧼 Je change la litière !
+                            </button>`
+                        }
+                    </div>
+                `;
+            }
+            
+            document.getElementById('tasksList').innerHTML = html;
+        }
+
+        async function markTaskDone(taskId) {
+            try {
+                const taskData = {
+                    user: currentUser,
+                    task_id: taskId,
+                    task_name: TASKS[taskId].name
+                };
+
+                // Essayer d'envoyer à Google Sheets
+                const success = await sendToGoogleSheets(taskData);
+                
+                if (success) {
+                    showNotification("✅ Tâche enregistrée pour tous !");
+                } else {
+                    // Fallback local
+                    saveTaskLocally(taskId);
+                    showNotification("✅ Tâche enregistrée (mode local)");
+                }
+                
+                // Recharger
+                setTimeout(loadTasks, 1000);
+                
+            } catch (error) {
+                console.error("Erreur:", error);
+                showError("Erreur, réessayez");
+            }
+        }
+
+        async function sendToGoogleSheets(taskData) {
+            try {
+                const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -62,59 +511,75 @@
                 });
                 
                 const result = await response.json();
-                document.getElementById('debug').innerHTML = 
-                    "✅ Réponse: " + JSON.stringify(result, null, 2);
-                
-                // Recharger les tâches après 2 secondes
-                setTimeout(loadTasks, 2000);
-                
+                return result.success;
             } catch (error) {
-                document.getElementById('debug').innerHTML = 
-                    "❌ Erreur: " + error.toString();
+                console.error("Erreur envoi:", error);
+                return false;
             }
         }
 
-        async function loadTasks() {
-            try {
-                document.getElementById('debug').innerHTML = "⏳ Chargement...";
-                
-                const response = await fetch(GOOGLE_SCRIPT_URL);
-                const result = await response.json();
-                
-                document.getElementById('debug').innerHTML = 
-                    "📊 Données brutes: " + JSON.stringify(result, null, 2);
-                
-                if (result.success && result.data) {
-                    displayTasks(result.data);
-                }
-                
-            } catch (error) {
-                document.getElementById('debug').innerHTML = 
-                    "❌ Erreur chargement: " + error.toString();
-            }
+        function saveTaskLocally(taskId) {
+            const tasks = getLocalTasks();
+            tasks[taskId] = {
+                user: currentUser,
+                time: new Date().toLocaleTimeString('fr-FR', { 
+                    hour: '2-digit', minute: '2-digit' 
+                })
+            };
+            localStorage.setItem('localTasks', JSON.stringify(tasks));
         }
 
-        function displayTasks(sheetData) {
-            let html = "<h3>Tâches dans le Sheet:</h3>";
+        function showNotification(message, isError = false) {
+            const existing = document.querySelectorAll('.notification');
+            existing.forEach(notif => notif.remove());
             
-            if (sheetData.length === 0) {
-                html += "<p>Aucune tâche encore</p>";
-            } else {
-                html += "<table border='1' style='width: 100%;'>";
-                
-                sheetData.forEach((row, index) => {
-                    html += "<tr>";
-                    row.forEach(cell => {
-                        html += `<td>${cell || ''}</td>`;
-                    });
-                    html += "</tr>";
+            const notification = document.createElement('div');
+            notification.className = `notification ${isError ? 'error' : ''}`;
+            notification.innerHTML = `🔔 ${message}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 4000);
+        }
+
+        function showError(message) {
+            showNotification(`❌ ${message}`, true);
+        }
+
+        function showLoadingState(loading) {
+            const tasksList = document.getElementById('tasksList');
+            if (tasksList) {
+                tasksList.classList.toggle('loading', loading);
+            }
+        }
+
+        function updateLastRefresh() {
+            const now = new Date().toLocaleTimeString('fr-FR');
+            const element = document.getElementById('lastRefresh');
+            if (element) {
+                element.textContent = `Dernier rafraîchissement : ${now}`;
+            }
+        }
+
+        function logout() {
+            clearInterval(autoRefreshInterval);
+            localStorage.removeItem('userName');
+            location.reload();
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedUser = localStorage.getItem('userName');
+            if (savedUser) {
+                currentUser = savedUser;
+                showDashboard();
+            }
+            
+            ['familyPassword', 'userName'].forEach(id => {
+                document.getElementById(id)?.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') login();
                 });
-                
-                html += "</table>";
-            }
-            
-            document.getElementById('tasksList').innerHTML = html;
-        }
+            });
+        });
     </script>
 </body>
 </html>
